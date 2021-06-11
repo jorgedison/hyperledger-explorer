@@ -1,0 +1,52 @@
+# Copyright All Rights Reserved.
+# Autor: Jorge Rodriguez, jorgeedison1@gmail.com
+# Date: 29-09-2020
+# SPDX-License-Identifier: Apache-2.0
+
+version: '3.2'
+
+volumes:
+  pgdata:
+  walletstore:
+
+networks:
+  my-net:
+    external:
+      name: my-net
+
+services:
+  database:
+    image: hyperledger/explorer-db:latest
+    hostname: db
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - my-net
+
+  web:
+    image: hyperledger/explorer:latest
+    environment:
+      - DATABASE_HOST=explorer_database
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - ./crypto-config:/tmp/crypto
+      - walletstore:/opt/explorer/wallet
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+    networks:
+      - my-net
